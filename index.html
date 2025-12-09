@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Story</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: "Helvetica Neue", sans-serif;
+        }
+
+        #bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -1;
+        }
+
+        #bear {
+            position: absolute;
+            width: auto;
+            height: auto;
+            max-width: 200px;
+            cursor: grab;
+            user-select: none;
+            -webkit-user-select: none;
+            transition: filter 0.1s ease;
+            z-index: 10;
+        }
+
+        #bear:active {
+            cursor: grabbing;
+        }
+
+        #bear.glowing {
+            animation: glow 1.5s ease-in-out;
+        }
+
+        @keyframes glow {
+            0% { filter: brightness(1); }
+            50% { filter: brightness(1.35); }
+            100% { filter: brightness(1); }
+        }
+
+        #storyText {
+            position: fixed;
+            top: 14%;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            font-size: 24px;
+            text-align: center;
+            letter-spacing: 1.5px;
+            text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            opacity: 0;
+            pointer-events: none;
+            z-index: 20;
+            white-space: nowrap;
+            transition: opacity 0.6s ease;
+        }
+
+        #storyText.show {
+            opacity: 0.9;
+        }
+
+        @keyframes fadeInOut {
+            0% { opacity: 0; }
+            15% { opacity: 0.9; }
+            85% { opacity: 0.9; }
+            100% { opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <img id="bg" src="background.png" alt="Background">
+    <img id="bear" src="bear.png" alt="Bear">
+    <div id="storyText"></div>
+
+    <script>
+        const bear = document.getElementById('bear');
+        const storyText = document.getElementById('storyText');
+
+        // Story lines
+        const lines = [
+            "这是我们第一次见面的地方。",
+            "那时的光，被它悄悄藏了起来。"
+        ];
+        let currentLine = 0;
+        let isTextShowing = false;
+        let fadeTimeout = null;
+
+        // Initial bear position
+        let bearX = 120;
+        let bearY = 350;
+        bear.style.left = bearX + 'px';
+        bear.style.top = bearY + 'px';
+
+        // Drag functionality
+        let isDragging = false;
+        let dragStartX = 0;
+        let dragStartY = 0;
+        let bearStartX = 0;
+        let bearStartY = 0;
+        let hasMoved = false;
+
+        bear.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            isDragging = true;
+            hasMoved = false;
+            dragStartX = e.clientX;
+            dragStartY = e.clientY;
+            bearStartX = bearX;
+            bearStartY = bearY;
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                const deltaX = e.clientX - dragStartX;
+                const deltaY = e.clientY - dragStartY;
+
+                // Check if significant movement occurred
+                if (Math.abs(deltaX) > 3 || Math.abs(deltaY) > 3) {
+                    hasMoved = true;
+                }
+
+                bearX = bearStartX + deltaX;
+                bearY = bearStartY + deltaY;
+
+                // Keep bear within viewport
+                const maxX = window.innerWidth - bear.offsetWidth;
+                const maxY = window.innerHeight - bear.offsetHeight;
+
+                bearX = Math.max(0, Math.min(bearX, maxX));
+                bearY = Math.max(0, Math.min(bearY, maxY));
+
+                bear.style.left = bearX + 'px';
+                bear.style.top = bearY + 'px';
+            }
+        });
+
+        document.addEventListener('mouseup', (e) => {
+            if (isDragging) {
+                isDragging = false;
+
+                // Only trigger click if no significant movement
+                if (!hasMoved) {
+                    handleBearClick();
+                }
+            }
+        });
+
+        // Click handler for bear
+        function handleBearClick() {
+            // Don't trigger if text is already showing
+            if (isTextShowing) return;
+
+            isTextShowing = true;
+
+            // Show current line
+            storyText.textContent = lines[currentLine];
+            storyText.classList.add('show');
+
+            // Trigger glow animation
+            bear.classList.remove('glowing');
+            void bear.offsetWidth; // Force reflow
+            bear.classList.add('glowing');
+
+            // Clear any existing timeout
+            if (fadeTimeout) {
+                clearTimeout(fadeTimeout);
+            }
+
+            // Fade out after 3.5s
+            fadeTimeout = setTimeout(() => {
+                storyText.classList.remove('show');
+                setTimeout(() => {
+                    isTextShowing = false;
+                    // Switch to next line for next click
+                    currentLine = (currentLine + 1) % lines.length;
+                }, 600); // Wait for fade out transition
+            }, 3500);
+        }
+
+        // Remove glow class after animation completes
+        bear.addEventListener('animationend', () => {
+            bear.classList.remove('glowing');
+        });
+    </script>
+</body>
+</html>
