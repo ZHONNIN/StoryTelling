@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Story</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        }
+
+        /* Scene container */
+        .scene {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 1;
+            transition: opacity 0.7s ease;
+        }
+
+        .scene.active {
+            display: block;
+        }
+
+        .scene.fade-out {
+            opacity: 0;
+        }
+
+        /* Scene 0 and 0.5 styles (text scenes) */
+        .text-scene {
+            background-color: #000000;
+            color: #f5f5f5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+
+        .text-scene .content {
+            max-width: 760px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .text-scene p {
+            font-size: 18px;
+            line-height: 1.8;
+            margin-bottom: 1.8em;
+            opacity: 0;
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.15);
+            transition: opacity 1s ease-in-out;
+        }
+
+        .text-scene p.visible {
+            opacity: 1;
+        }
+
+        .text-scene .dialogue {
+            font-style: italic;
+        }
+
+        .text-scene .narration {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .continue-button {
+            position: fixed;
+            bottom: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #f5f5f5;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 14px 40px;
+            font-size: 16px;
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            letter-spacing: 1px;
+            cursor: pointer;
+            opacity: 0;
+            transition: all 0.4s ease;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+            text-shadow: 0 0 6px rgba(255, 255, 255, 0.12);
+            z-index: 100;
+        }
+
+        .continue-button:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.4);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .continue-button.visible {
+            opacity: 1;
+        }
+
+        /* Scene 1 styles (interactive room) */
+        #scene1 {
+            background-color: #000;
+        }
+
+        #bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -1;
+        }
+
+        #bear {
+            position: absolute;
+            width: auto;
+            height: auto;
+            max-width: 200px;
+            cursor: grab;
+            user-select: none;
+            -webkit-user-select: none;
+            transition: filter 0.1s ease;
+            z-index: 10;
+        }
+
+        #bear:active {
+            cursor: grabbing;
+        }
+
+        #bear.glowing {
+            animation: glow 1.5s ease-in-out;
+        }
+
+        @keyframes glow {
+            0% { filter: brightness(1); }
+            50% { filter: brightness(1.35); }
+            100% { filter: brightness(1); }
+        }
+
+        #storyText {
+            position: fixed;
+            top: 14%;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            font-size: 24px;
+            text-align: center;
+            letter-spacing: 1.5px;
+            text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            opacity: 0;
+            pointer-events: none;
+            z-index: 20;
+            white-space: nowrap;
+            transition: opacity 0.6s ease;
+        }
+
+        #storyText.show {
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <!-- Scene 0: Mother's Voice -->
+    <div id="scene0" class="scene text-scene active">
+        <div class="content">
+            <p class="dialogue" data-scene="0">"I don't know how big your world will become,<br>but I want you to have something that can grow with you."</p>
+            <p class="dialogue" data-scene="0">"This little bear… it's my first birthday gift for you.<br>I hope one day, when you look at it,<br>it will remind you of where you began."</p>
+            <p class="narration" data-scene="0">She places something soft and warm into your tiny hands.<br>You cannot speak yet, but you feel her voice like a quiet light.</p>
+            <p class="dialogue" data-scene="0">"And this… is how my story began."</p>
+        </div>
+        <button class="continue-button" id="continueBtn0">Continue</button>
+    </div>
+
+    <!-- Scene 0.5: Bear's Monologue -->
+    <div id="scene0-5" class="scene text-scene">
+        <div class="content">
+            <p data-scene="0.5">"I was given to you before you knew the world.<br>Before your first words, before your first memories—<br>I was already there."</p>
+            <p data-scene="0.5">"I don't have a heartbeat or breath,<br>but I remember the warmth of that day."</p>
+            <p data-scene="0.5">"I wasn't just a gift.<br>I was meant to keep the pieces of your story safe…<br>even the ones you might forget."</p>
+            <p data-scene="0.5">"When you open your eyes again, I will be waiting."</p>
+        </div>
+        <button class="continue-button" id="continueBtn0-5">Continue</button>
+    </div>
+
+    <!-- Scene 1: Interactive Room -->
+    <div id="scene1" class="scene">
+        <img id="bg" src="background.png" alt="Background">
+        <img id="bear" src="bear.png" alt="Bear">
+        <div id="storyText"></div>
+    </div>
+
+    <script>
+        // Scene management
+        let currentSceneId = 'scene0';
+
+        function switchScene(fromSceneId, toSceneId) {
+            const fromScene = document.getElementById(fromSceneId);
+            const toScene = document.getElementById(toSceneId);
+
+            // Fade out current scene
+            fromScene.classList.add('fade-out');
+
+            setTimeout(() => {
+                fromScene.classList.remove('active', 'fade-out');
+                toScene.classList.add('active');
+
+                // Initialize the target scene
+                if (toSceneId === 'scene0-5') {
+                    initScene05();
+                } else if (toSceneId === 'scene1') {
+                    initScene1();
+                }
+            }, 700); // Match the fade-out transition duration
+        }
+
+        // Scene 0: Mother's Voice
+        function initScene0() {
+            const paragraphs = document.querySelectorAll('#scene0 p[data-scene="0"]');
+            const continueBtn = document.getElementById('continueBtn0');
+
+            // Fade in paragraphs sequentially with 2.3s interval
+            paragraphs.forEach((p, index) => {
+                setTimeout(() => {
+                    p.classList.add('visible');
+                }, index * 2300);
+            });
+
+            // Show continue button after all paragraphs
+            const buttonDelay = paragraphs.length * 2300 + 800;
+            setTimeout(() => {
+                continueBtn.classList.add('visible');
+            }, buttonDelay);
+
+            // Continue button handler
+            continueBtn.addEventListener('click', () => {
+                switchScene('scene0', 'scene0-5');
+            });
+        }
+
+        // Scene 0.5: Bear's Monologue
+        function initScene05() {
+            const paragraphs = document.querySelectorAll('#scene0-5 p[data-scene="0.5"]');
+            const continueBtn = document.getElementById('continueBtn0-5');
+
+            // Fade in paragraphs sequentially with 2.3s interval
+            paragraphs.forEach((p, index) => {
+                setTimeout(() => {
+                    p.classList.add('visible');
+                }, index * 2300);
+            });
+
+            // Show continue button after all paragraphs
+            const buttonDelay = paragraphs.length * 2300 + 800;
+            setTimeout(() => {
+                continueBtn.classList.add('visible');
+            }, buttonDelay);
+
+            // Continue button handler
+            continueBtn.addEventListener('click', () => {
+                switchScene('scene0-5', 'scene1');
+            });
+        }
+
+        // Scene 1: Interactive Room
+        function initScene1() {
+            const bear = document.getElementById('bear');
+            const storyText = document.getElementById('storyText');
+
+            // Story lines (English)
+            const lines = [
+                "This is the place where we first met.",
+                "Back then, it quietly kept the light of that day."
+            ];
+            let currentLine = 0;
+            let isTextShowing = false;
+            let fadeTimeout = null;
+
+            // Initial bear position
+            let bearX = 120;
+            let bearY = 350;
+            bear.style.left = bearX + 'px';
+            bear.style.top = bearY + 'px';
+
+            // Drag functionality
+            let isDragging = false;
+            let dragStartX = 0;
+            let dragStartY = 0;
+            let bearStartX = 0;
+            let bearStartY = 0;
+            let hasMoved = false;
+
+            bear.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                isDragging = true;
+                hasMoved = false;
+                dragStartX = e.clientX;
+                dragStartY = e.clientY;
+                bearStartX = bearX;
+                bearStartY = bearY;
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (isDragging) {
+                    const deltaX = e.clientX - dragStartX;
+                    const deltaY = e.clientY - dragStartY;
+
+                    // Check if significant movement occurred
+                    if (Math.abs(deltaX) > 3 || Math.abs(deltaY) > 3) {
+                        hasMoved = true;
+                    }
+
+                    bearX = bearStartX + deltaX;
+                    bearY = bearStartY + deltaY;
+
+                    // Keep bear within viewport
+                    const maxX = window.innerWidth - bear.offsetWidth;
+                    const maxY = window.innerHeight - bear.offsetHeight;
+
+                    bearX = Math.max(0, Math.min(bearX, maxX));
+                    bearY = Math.max(0, Math.min(bearY, maxY));
+
+                    bear.style.left = bearX + 'px';
+                    bear.style.top = bearY + 'px';
+                }
+            });
+
+            document.addEventListener('mouseup', (e) => {
+                if (isDragging) {
+                    isDragging = false;
+
+                    // Only trigger click if no significant movement
+                    if (!hasMoved) {
+                        handleBearClick();
+                    }
+                }
+            });
+
+            // Click handler for bear
+            function handleBearClick() {
+                // Don't trigger if text is already showing
+                if (isTextShowing) return;
+
+                isTextShowing = true;
+
+                // Show current line
+                storyText.textContent = lines[currentLine];
+                storyText.classList.add('show');
+
+                // Trigger glow animation
+                bear.classList.remove('glowing');
+                void bear.offsetWidth; // Force reflow
+                bear.classList.add('glowing');
+
+                // Clear any existing timeout
+                if (fadeTimeout) {
+                    clearTimeout(fadeTimeout);
+                }
+
+                // Fade out after 3.5s
+                fadeTimeout = setTimeout(() => {
+                    storyText.classList.remove('show');
+                    setTimeout(() => {
+                        isTextShowing = false;
+                        // Switch to next line for next click
+                        currentLine = (currentLine + 1) % lines.length;
+                    }, 600); // Wait for fade out transition
+                }, 3500);
+            }
+
+            // Remove glow class after animation completes
+            bear.addEventListener('animationend', () => {
+                bear.classList.remove('glowing');
+            });
+        }
+
+        // Initialize Scene 0 on page load
+        initScene0();
+    </script>
+</body>
+</html>
